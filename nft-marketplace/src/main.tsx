@@ -1,10 +1,19 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import App from './App.tsx'
+import { AppProviders } from './app/providers'
+import { initializeMocks } from './app/bootstrap'
+import { createQueryClient } from './app/query-client'
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+async function startApplication() {
+  await initializeMocks()
+  const root = document.getElementById('root')
+  if (!root) throw new Error('Application root element was not found')
+  createRoot(root).render(
+    <StrictMode>
+      <AppProviders queryClient={createQueryClient()} />
+    </StrictMode>,
+  )
+}
+
+void startApplication()
