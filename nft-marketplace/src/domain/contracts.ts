@@ -18,6 +18,9 @@ export const sessionSchema = z.object({
 })
 export type Session = z.infer<typeof sessionSchema>
 
+export const authResponseSchema = z.object({ token: z.string().min(1), session: sessionSchema })
+export type AuthResponse = z.infer<typeof authResponseSchema>
+
 export const loginRequestSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
@@ -163,4 +166,3 @@ export const apiErrorSchema = z.object({
   fields: z.record(z.string(), z.array(z.string())).optional(),
 })
 export type ApiError = z.infer<typeof apiErrorSchema>
-

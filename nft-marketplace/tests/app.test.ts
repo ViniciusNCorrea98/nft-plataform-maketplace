@@ -7,6 +7,7 @@ import { apiClient, setAuthToken } from '@/lib/http/api-client'
 import { server } from '@/mocks/server'
 import { mockStore } from '@/mocks/store'
 import { requireAuthenticated, router } from '@/app/router'
+import { safeReturnPath } from '@/features/auth/return-path'
 
 beforeAll(() => {
   apiClient.defaults.baseURL = 'http://localhost/api'
@@ -48,11 +49,18 @@ describe('application bootstrap and session boundary', () => {
 
   it('rejects unauthenticated access with a single login redirect', async () => {
     const promise = requireAuthenticated(new QueryClient({ defaultOptions: { queries: { retry: false } } }))
-    await expect(promise).rejects.toMatchObject({ options: { href: '/login' } })
+    await expect(promise).rejects.toMatchObject({ options: { href: '/login?redirect=%2F' } })
   })
 
   it('registers the protected route paths in the typed router', () => {
     expect(router.buildLocation({ to: '/cart' }).pathname).toBe('/cart')
     expect(router.buildLocation({ to: '/orders/$id', params: { id: 'order-1' } }).pathname).toBe('/orders/order-1')
+  })
+
+  it('accepts internal return paths and rejects external or auth-loop paths', () => {
+    expect(safeReturnPath('/cart?from=detail')).toBe('/cart?from=detail')
+    expect(safeReturnPath('https://evil.example')).toBe('/')
+    expect(safeReturnPath('//evil.example')).toBe('/')
+    expect(safeReturnPath('/login')).toBe('/')
   })
 })

@@ -1,7 +1,13 @@
 import { Heart, Menu, ShoppingBag, Sparkles } from 'lucide-react'
-import { Link, Outlet } from '@tanstack/react-router'
+import { Link, Outlet, useRouter } from '@tanstack/react-router'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { logout, useSession } from '@/app/session'
 
 export function AppShell() {
+  const session = useSession()
+  const router = useRouter()
+  const queryClient = useQueryClient()
+  const logoutMutation = useMutation({ mutationFn: logout, onSuccess: () => { queryClient.clear(); void router.navigate({ href: '/', replace: true }) } })
   return (
     <div className="app-shell">
       <header className="site-header">
@@ -15,9 +21,9 @@ export function AppShell() {
           <a href="#about">About</a>
         </nav>
         <div className="header-actions">
-          <Link className="icon-button" to="/login" aria-label="Favoritos"><Heart size={19} /></Link>
+          <Link className="icon-button" to="/login" search={{}} aria-label="Favoritos"><Heart size={19} /></Link>
           <Link className="icon-button" to="/cart" aria-label="Carrinho"><ShoppingBag size={19} /></Link>
-          <Link className="connect-button" to="/login">Connect wallet</Link>
+          {session.data?.authenticated ? <button className="connect-button" type="button" onClick={() => logoutMutation.mutate()} disabled={logoutMutation.isPending}>{logoutMutation.isPending ? 'Signing out…' : 'Sign out'}</button> : <Link className="connect-button" to="/login" search={{}}>Connect wallet</Link>}
           <button className="menu-button" type="button" aria-label="Abrir menu"><Menu size={22} /></button>
         </div>
       </header>
