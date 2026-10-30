@@ -1,5 +1,6 @@
 import { http, HttpResponse, type JsonBodyType } from 'msw'
 import { z } from 'zod'
+import Decimal from 'decimal.js'
 import { cartItemMutationSchema, createOrderRequestSchema, favoriteMutationSchema, loginRequestSchema, nftListQuerySchema, quoteRequestSchema, registerRequestSchema } from '@/domain/contracts'
 import { digestPassword, getCartForUser, getNft, getStoredUser, getTokenFromHeaders, getUserByEmail, getUserIdFromToken, mockStore, toPublicUser } from './store'
 
@@ -27,6 +28,27 @@ function withScenario(nft: NonNullable<ReturnType<typeof getNft>>) {
   changed.editions[0].priceEth = '2.49'
   changed.editions[0].availableQuantity = 1
   return changed
+}
+function getCartResponse(userId: string) {
+  const items = getCartForUser(userId).flatMap((item) => {
+    const nft = getNft(item.nftId)
+    const edition = nft?.editions.find((candidate) => candidate.id === item.editionId)
+    return nft && edition ? [{ ...item, unitPriceEth: edition.priceEth, availableQuantity: edition.availableQuantity, version: nft.version }] : []
+  })
+  const subtotalEth = items.reduce((sum, item) => sum.plus(new Decimal(item.unitPriceEth).times(item.quantity)), new Decimal(0)).toFixed(2)
+  return { items, subtotalEth }
+}
+function getQuote(userId: string, couponCode: string | null) {
+  if (couponCode && (mockStore.state.scenario === 'invalid-coupon' || couponCode !== 'WELCOME10')) return null
+  const subtotal = getCartForUser(userId).reduce((sum, item) => {
+    const nft = getNft(item.nftId)
+    const currentNft = nft ? withScenario(nft) : undefined
+    const currentEdition = currentNft?.editions.find((candidate) => candidate.id === item.editionId)
+    return sum.plus(currentEdition ? new Decimal(currentEdition.priceEth).times(item.quantity) : 0)
+  }, new Decimal(0))
+  const discount = couponCode ? subtotal.times('0.1') : new Decimal(0)
+  const networkFee = new Decimal('0.01')
+  return { subtotalEth: subtotal.toFixed(2), discountEth: discount.toFixed(2), networkFeeEth: networkFee.toFixed(2), totalEth: subtotal.minus(discount).plus(networkFee).toFixed(2), couponCode }
 }
 
 export const handlers = [
@@ -109,13 +131,7 @@ export const handlers = [
   http.get(route('/api/cart'), ({ request }) => {
     const result = requireUser(request)
     if ('response' in result) return result.response
-    const items = getCartForUser(result.user.id).flatMap((item) => {
-      const nft = getNft(item.nftId)
-      const edition = nft?.editions.find((candidate) => candidate.id === item.editionId)
-      return nft && edition ? [{ ...item, unitPriceEth: edition.priceEth, availableQuantity: edition.availableQuantity, version: nft.version }] : []
-    })
-    const subtotalEth = items.reduce((sum, item) => sum + Number(item.unitPriceEth) * item.quantity, 0).toFixed(2)
-    return ok({ items, subtotalEth })
+    return ok(getCartResponse(result.user.id))
   }),
   http.put(route('/api/cart/items'), async ({ request }) => {
     const result = requireUser(request)
@@ -130,7 +146,7 @@ export const handlers = [
     const index = cart.findIndex((item) => item.nftId === parsed.data.nftId && item.editionId === parsed.data.editionId)
     if (parsed.data.quantity === 0) { if (index >= 0) cart.splice(index, 1) } else if (index >= 0) cart[index].quantity = parsed.data.quantity
     else cart.push(parsed.data)
-    return ok({ items: cart })
+    return ok(getCartResponse(result.user.id))
   }),
 
   http.post(route('/api/quotes'), async ({ request }) => {
@@ -138,13 +154,9 @@ export const handlers = [
     if ('response' in result) return result.response
     const parsed = await readJson(request, quoteRequestSchema)
     if (!parsed.success) return fail(422, 'VALIDATION_ERROR', 'Invalid quote payload')
-    if (parsed.data.couponCode && (mockStore.state.scenario === 'invalid-coupon' || parsed.data.couponCode !== 'WELCOME10')) return fail(422, 'INVALID_COUPON', 'Coupon is invalid or expired')
-    const subtotal = getCartForUser(result.user.id).reduce((sum, item) => {
-      const edition = getNft(item.nftId)?.editions.find((candidate) => candidate.id === item.editionId)
-      return sum + (edition ? Number(edition.priceEth) * item.quantity : 0)
-    }, 0)
-    const discount = parsed.data.couponCode ? subtotal * 0.1 : 0
-    return ok({ subtotalEth: subtotal.toFixed(2), discountEth: discount.toFixed(2), networkFeeEth: '0.01', totalEth: (subtotal - discount + 0.01).toFixed(2), couponCode: parsed.data.couponCode })
+    const quote = getQuote(result.user.id, parsed.data.couponCode)
+    if (!quote) return fail(422, 'INVALID_COUPON', 'Coupon is invalid or expired')
+    return ok(quote)
   }),
 
   http.get(route('/api/profile'), ({ request }) => {
@@ -166,20 +178,40 @@ export const handlers = [
     if (!parsed.success) return fail(422, 'VALIDATION_ERROR', 'Invalid order payload')
     const idempotencyKey = request.headers.get('idempotency-key')
     if (!idempotencyKey) return fail(400, 'IDEMPOTENCY_KEY_REQUIRED', 'Idempotency-Key is required')
-    const existing = mockStore.state.orders.find((order) => order.id === idempotencyKey)
-    if (existing) return ok(existing)
+    const existingKey = mockStore.state.idempotencyKeys[idempotencyKey]
+    if (existingKey) {
+      const sameOperation = existingKey.userId === result.user.id && existingKey.walletId === parsed.data.walletId && existingKey.network === parsed.data.network && existingKey.couponCode === parsed.data.couponCode && (!parsed.data.quoteTotalEth || existingKey.quoteTotalEth === parsed.data.quoteTotalEth)
+      if (!sameOperation) return fail(409, 'IDEMPOTENCY_KEY_CONFLICT', 'Idempotency key was already used for another operation')
+      const existing = mockStore.state.orders.find((order) => order.id === idempotencyKey)
+      return existing ? ok(existing) : fail(409, 'ORDER_UNAVAILABLE', 'Order result is not available')
+    }
     const cart = getCartForUser(result.user.id)
     if (!cart.length) return fail(409, 'EMPTY_CART', 'Cart is empty')
+    const wallet = mockStore.state.wallets.find((candidate) => candidate.id === parsed.data.walletId && mockStore.state.profiles[result.user.id].walletIds.includes(candidate.id))
+    if (!wallet || wallet.network !== parsed.data.network) return fail(422, 'INVALID_WALLET', 'Wallet is not available for this account or network')
+    const quote = getQuote(result.user.id, parsed.data.couponCode)
+    if (!quote) return fail(422, 'INVALID_COUPON', 'Coupon is invalid or expired')
+    const requestedQuoteTotal = parsed.data.quoteTotalEth ?? quote.totalEth
+    if (mockStore.state.scenario === 'price-changed' || quote.totalEth !== requestedQuoteTotal) return fail(409, 'QUOTE_STALE', 'The quote changed. Review it before confirming the order')
     const items = cart.flatMap((item) => {
       const nft = getNft(item.nftId)
-      const edition = nft?.editions.find((candidate) => candidate.id === item.editionId)
-      return nft && edition ? [{ ...item, name: nft.name, unitPriceEth: edition.priceEth, availableQuantity: edition.availableQuantity, version: nft.version }] : []
+      const currentNft = nft ? withScenario(nft) : undefined
+      const currentEdition = currentNft?.editions.find((candidate) => candidate.id === item.editionId)
+      return currentNft && currentEdition && item.quantity <= currentEdition.availableQuantity ? [{ ...item, name: currentNft.name, unitPriceEth: currentEdition.priceEth, availableQuantity: currentEdition.availableQuantity, version: currentNft.version }] : []
     })
-    const subtotal = items.reduce((sum, item) => sum + Number(item.unitPriceEth) * item.quantity, 0)
+    if (items.length !== cart.length) return fail(409, 'OUT_OF_STOCK', 'An item is no longer available')
     const status: 'pending' | 'confirmed' | 'declined' = mockStore.state.scenario === 'payment-declined' ? 'declined' : mockStore.state.scenario === 'order-timeout' ? 'pending' : 'confirmed'
-    const order = { id: idempotencyKey, userId: result.user.id, status, transactionReference: status === 'confirmed' ? `tx-${idempotencyKey}` : null, items, subtotalEth: subtotal.toFixed(2), discountEth: '0.00', networkFeeEth: '0.01', totalEth: (subtotal + 0.01).toFixed(2), walletId: parsed.data.walletId, network: parsed.data.network, createdAt: now() }
+    const order = { id: idempotencyKey, userId: result.user.id, status, transactionReference: status === 'confirmed' ? `tx-${idempotencyKey}` : null, items, subtotalEth: quote.subtotalEth, discountEth: quote.discountEth, networkFeeEth: quote.networkFeeEth, totalEth: quote.totalEth, walletId: parsed.data.walletId, network: parsed.data.network, createdAt: now() }
+    mockStore.state.idempotencyKeys[idempotencyKey] = { userId: result.user.id, walletId: parsed.data.walletId, network: parsed.data.network, couponCode: parsed.data.couponCode, quoteTotalEth: requestedQuoteTotal }
     mockStore.state.orders.push(order)
-    if (status === 'confirmed') mockStore.state.carts[result.user.id] = []
+    if (status === 'confirmed') {
+      mockStore.state.carts[result.user.id] = cart.flatMap((cartItem) => {
+        const purchased = items.find((item) => item.nftId === cartItem.nftId && item.editionId === cartItem.editionId)
+        const remaining = cartItem.quantity - (purchased?.quantity ?? 0)
+        return remaining > 0 ? [{ ...cartItem, quantity: remaining }] : []
+      })
+    }
+    if (mockStore.state.scenario === 'order-timeout') return HttpResponse.error()
     return ok(order, { status: status === 'declined' ? 402 : 201 })
   }),
   http.get(route('/api/orders/:orderId'), ({ request, params }) => {

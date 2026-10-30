@@ -13,6 +13,7 @@ export type MockState = {
   favorites: Record<string, string[]>
   carts: Record<string, CartRecord[]>
   orders: Order[]
+  idempotencyKeys: Record<string, { userId: string; walletId: string; network: Wallet['network']; couponCode: string | null; quoteTotalEth: string }>
   sessions: Record<string, string>
   profiles: Record<string, Profile>
 }
@@ -43,6 +44,7 @@ export function createInitialMockState(scenario: MockScenario = 'default'): Mock
     favorites: { 'user-1': ['nft-2'], 'user-2': [] },
     carts: { 'user-1': [], 'user-2': [] },
     orders: [],
+    idempotencyKeys: {},
     sessions: {},
     profiles: Object.fromEntries(initialUsers.map((user) => [user.id, { id: user.id, email: user.email, name: user.name, avatarUrl: user.avatarUrl, bio: user.bio, walletIds: user.walletIds }])),
   }

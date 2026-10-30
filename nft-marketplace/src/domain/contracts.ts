@@ -157,6 +157,7 @@ export const createOrderRequestSchema = z.object({
   walletId: id,
   network: z.enum(['ethereum', 'polygon']),
   couponCode: z.string().trim().min(1).nullable(),
+  quoteTotalEth: ethAmount.optional(),
 })
 export type CreateOrderRequest = z.infer<typeof createOrderRequestSchema>
 
