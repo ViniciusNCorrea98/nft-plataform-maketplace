@@ -3,6 +3,7 @@ import { z } from 'zod'
 import Decimal from 'decimal.js'
 import { cartItemMutationSchema, createOrderRequestSchema, favoriteMutationSchema, loginRequestSchema, nftListQuerySchema, quoteRequestSchema, registerRequestSchema } from '@/domain/contracts'
 import { digestPassword, getCartForUser, getNft, getStoredUser, getTokenFromHeaders, getUserByEmail, getUserIdFromToken, mockStore, toPublicUser } from './store'
+import { emitMockEvent } from './socket'
 
 const ok = (data: JsonBodyType, init?: ResponseInit) => HttpResponse.json(data, init)
 const fail = (status: number, code: string, message: string) => HttpResponse.json({ code, message }, { status })
@@ -204,6 +205,7 @@ export const handlers = [
     const order = { id: idempotencyKey, userId: result.user.id, status, transactionReference: status === 'confirmed' ? `tx-${idempotencyKey}` : null, items, subtotalEth: quote.subtotalEth, discountEth: quote.discountEth, networkFeeEth: quote.networkFeeEth, totalEth: quote.totalEth, walletId: parsed.data.walletId, network: parsed.data.network, createdAt: now() }
     mockStore.state.idempotencyKeys[idempotencyKey] = { userId: result.user.id, walletId: parsed.data.walletId, network: parsed.data.network, couponCode: parsed.data.couponCode, quoteTotalEth: requestedQuoteTotal }
     mockStore.state.orders.push(order)
+    emitMockEvent('order.updated', { id: order.id, userId: order.userId, version: 1, order })
     if (status === 'confirmed') {
       mockStore.state.carts[result.user.id] = cart.flatMap((cartItem) => {
         const purchased = items.find((item) => item.nftId === cartItem.nftId && item.editionId === cartItem.editionId)

@@ -50,6 +50,7 @@ export function useOrder(userId: string | undefined, orderId: string) {
 function clearPrivateSession(queryClient: ReturnType<typeof useQueryClient>, userId: string | undefined) {
   setAuthToken(null)
   queryClient.setQueryData(sessionQueryKey, { authenticated: false, user: null, expiresAt: null })
+
   if (userId) {
     queryClient.removeQueries({ queryKey: cartQueryKey(userId) })
     queryClient.removeQueries({ queryKey: ['quote', userId] })
@@ -58,16 +59,21 @@ function clearPrivateSession(queryClient: ReturnType<typeof useQueryClient>, use
 }
 
 export function useCreateOrder(userId: string | undefined) {
+
   const queryClient = useQueryClient()
+
   return useMutation({
     mutationFn: createOrder,
     onSuccess: (order) => {
+
       if (!userId) return
       queryClient.setQueryData(orderQueryKey(userId, order.id), order)
+
       if (order.status === 'confirmed') {
         queryClient.removeQueries({ queryKey: cartQueryKey(userId) })
         queryClient.removeQueries({ queryKey: ['quote', userId] })
-      } else {
+      }
+       else {
         void queryClient.invalidateQueries({ queryKey: cartQueryKey(userId) })
         void queryClient.invalidateQueries({ queryKey: quoteQueryKey(userId, null) })
       }

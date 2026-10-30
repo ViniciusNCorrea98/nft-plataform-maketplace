@@ -18,6 +18,13 @@ export function setAuthToken(token: string | null) {
   }
 }
 
+export function getAuthToken() {
+  const authorization = apiClient.defaults.headers.common.Authorization
+  return typeof authorization === 'string' && authorization.startsWith('Bearer ')
+    ? authorization.slice('Bearer '.length)
+    : null
+}
+
 export function restoreAuthToken() {
   if (typeof window === 'undefined') return null
   const token = window.localStorage.getItem(AUTH_TOKEN_KEY)

@@ -2,11 +2,13 @@ import { Heart, Menu, ShoppingBag, Sparkles } from "lucide-react";
 import { Link, Outlet, useRouter } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { logout, useSession } from "@/app/session";
+import { useRealtimeSync } from "@/lib/realtime/use-realtime-sync";
 
 export function AppShell() {
   const session = useSession();
   const router = useRouter();
   const queryClient = useQueryClient();
+  useRealtimeSync();
   const logoutMutation = useMutation({
     mutationFn: logout,
     onSuccess: () => {

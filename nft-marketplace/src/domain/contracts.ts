@@ -153,6 +153,21 @@ export const orderSchema = z.object({
 })
 export type Order = z.infer<typeof orderSchema>
 
+export const nftUpdatedEventSchema = z.object({
+  id,
+  version: z.number().int().nonnegative(),
+  nft: nftSchema,
+}).refine((event) => event.id === event.nft.id && event.version === event.nft.version, 'NFT event identity and version must match the resource')
+export type NftUpdatedEvent = z.infer<typeof nftUpdatedEventSchema>
+
+export const orderUpdatedEventSchema = z.object({
+  id,
+  userId: id,
+  version: z.number().int().nonnegative(),
+  order: orderSchema,
+})
+export type OrderUpdatedEvent = z.infer<typeof orderUpdatedEventSchema>
+
 export const createOrderRequestSchema = z.object({
   walletId: id,
   network: z.enum(['ethereum', 'polygon']),
