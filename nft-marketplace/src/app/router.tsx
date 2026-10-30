@@ -1,11 +1,15 @@
-import { createRootRouteWithContext, createRoute, createRouter, Outlet, redirect } from '@tanstack/react-router'
+import { createRootRouteWithContext, createRoute, createRouter, redirect } from '@tanstack/react-router'
 import type { QueryClient } from '@tanstack/react-query'
 import { getSession, isAuthenticated } from './session'
 import { RouteState } from './route-state'
+import { AppShell } from '@/components/layout/app-shell'
+import { CatalogPage } from '@/features/catalog/catalog-page'
+import { DetailPage } from '@/features/catalog/detail-page'
 
 export interface RouterContext {
   queryClient: QueryClient
 }
+export type CatalogSearch = { search?: string; collection?: string; sort?: 'featured' | 'price-asc' | 'price-desc'; page?: number }
 
 export async function requireAuthenticated(queryClient: QueryClient) {
   const session = await getSession(queryClient)
@@ -14,14 +18,14 @@ export async function requireAuthenticated(queryClient: QueryClient) {
 }
 
 const rootRoute = createRootRouteWithContext<RouterContext>()({
-  component: () => <Outlet />,
+  component: AppShell,
   notFoundComponent: () => <RouteState title="Página não encontrada" detail="A rota solicitada não existe." />,
 })
 
 const publicRoute = <const TPath extends string>(path: TPath, title: string, detail: string) =>
   createRoute({ getParentRoute: () => rootRoute, path, component: () => <RouteState title={title} detail={detail} /> })
 
-const protectedRoute = (path: string, title: string, detail: string) =>
+const protectedRoute = <const TPath extends string>(path: TPath, title: string, detail: string) =>
   createRoute({
     getParentRoute: () => rootRoute,
     path,
@@ -29,8 +33,18 @@ const protectedRoute = (path: string, title: string, detail: string) =>
     component: () => <RouteState title={title} detail={detail} />,
   })
 
-const indexRoute = publicRoute('/', 'NFT Marketplace', 'Catálogo disponível em uma próxima tarefa.')
-const nftRoute = createRoute({ getParentRoute: () => rootRoute, path: '/nft/$id', component: () => <RouteState title="NFT" detail="Detalhe disponível em uma próxima tarefa." /> })
+const indexRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/',
+  validateSearch: (search: Record<string, unknown>): CatalogSearch => ({
+    search: typeof search.search === 'string' && search.search ? search.search : undefined,
+    collection: typeof search.collection === 'string' && search.collection ? search.collection : undefined,
+    sort: search.sort === 'price-asc' || search.sort === 'price-desc' ? search.sort : 'featured',
+    page: typeof search.page === 'number' && Number.isInteger(search.page) && search.page > 0 ? search.page : 1,
+  }),
+  component: CatalogPage,
+})
+const nftRoute = createRoute({ getParentRoute: () => rootRoute, path: '/nft/$id', component: DetailPage })
 const loginRoute = publicRoute('/login', 'Login', 'A autenticação será implementada na T05.')
 const registerRoute = publicRoute('/register', 'Cadastro', 'O cadastro será implementado na T05.')
 const cartRoute = protectedRoute('/cart', 'Carrinho', 'O carrinho será implementado na T07.')

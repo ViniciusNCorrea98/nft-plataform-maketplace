@@ -3,6 +3,7 @@ import { nftListResponseSchema, quoteResponseSchema } from '@/domain/contracts'
 import { apiClient, setAuthToken } from '@/lib/http/api-client'
 import { server } from '@/mocks/server'
 import { mockStore } from '@/mocks/store'
+import { fetchCatalog, fetchNft } from '@/features/catalog/api'
 
 beforeAll(() => {
   apiClient.defaults.baseURL = 'http://localhost/api'
@@ -23,6 +24,21 @@ describe('REST contracts through MSW and Axios', () => {
     mockStore.reset('empty-catalog')
     const empty = await apiClient.get('/nfts', { params: { page: 1, pageSize: 2 } })
     expect(nftListResponseSchema.parse(empty.data).total).toBe(0)
+  })
+
+  it('applies search, ordering and pagination through the catalog contract', async () => {
+    const filtered = await fetchCatalog({ search: 'Violet', sort: 'price-desc', page: 1, pageSize: 1 })
+    expect(filtered.items.map((item) => item.id)).toEqual(['nft-2'])
+    expect(filtered.page).toBe(1)
+    expect(filtered.pageSize).toBe(1)
+    const secondPage = await fetchCatalog({ sort: 'featured', page: 2, pageSize: 2 })
+    expect(secondPage.items).toHaveLength(1)
+    expect(secondPage.hasNext).toBe(false)
+  })
+
+  it('returns a typed detail and a deterministic not-found error', async () => {
+    expect((await fetchNft('nft-1')).collection).toBe('Emerald Apes')
+    await expect(fetchNft('missing-nft')).rejects.toMatchObject({ response: { status: 404 } })
   })
 
   it('isolates favorites and cart by authenticated user', async () => {
