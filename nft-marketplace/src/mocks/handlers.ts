@@ -6,7 +6,7 @@ import { digestPassword, getCartForUser, getNft, getStoredUser, getTokenFromHead
 const ok = (data: JsonBodyType, init?: ResponseInit) => HttpResponse.json(data, init)
 const fail = (status: number, code: string, message: string) => HttpResponse.json({ code, message }, { status })
 const now = () => new Date().toISOString()
-const route = (path: string) => typeof window === 'undefined' ? new URL(path, 'http://localhost').toString() : path
+const route = (path: string) => typeof window === 'undefined' || import.meta.env.MODE === 'test' ? new URL(path, 'http://localhost').toString() : path
 
 async function readJson<T>(request: Request, schema: z.ZodType<T>) {
   return schema.safeParse(await request.json())
@@ -16,6 +16,7 @@ function authUser(request: Request) {
   return userId ? getStoredUser(userId) : undefined
 }
 function requireUser(request: Request) {
+  if (mockStore.state.scenario === 'session-expired') return { response: fail(401, 'SESSION_EXPIRED', 'Session expired') }
   const user = authUser(request)
   return user ? { user } : { response: fail(401, 'UNAUTHORIZED', 'Authentication required') }
 }
