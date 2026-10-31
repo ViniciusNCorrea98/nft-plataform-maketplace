@@ -50,6 +50,7 @@ export const nftSchema = z.object({
   imageUrl: z.string().min(1),
   description: z.string(),
   creator: z.string().min(1),
+  network: z.enum(['ethereum', 'polygon', 'solana']).default('ethereum'),
   editions: z.array(nftEditionSchema).min(1),
   version: z.number().int().nonnegative(),
 })
@@ -58,11 +59,20 @@ export type Nft = z.infer<typeof nftSchema>
 export const nftListQuerySchema = z.object({
   search: z.string().optional(),
   collection: z.string().optional(),
+  minPrice: z.coerce.number().nonnegative().optional(),
+  maxPrice: z.coerce.number().nonnegative().optional(),
+  network: z.enum(['ethereum', 'polygon', 'solana']).optional(),
   sort: z.enum(['featured', 'price-asc', 'price-desc']).default('featured'),
   page: z.coerce.number().int().positive().default(1),
   pageSize: z.coerce.number().int().positive().max(50).default(6),
-})
+}).refine((query) => query.minPrice === undefined || query.maxPrice === undefined || query.minPrice <= query.maxPrice, { message: 'Minimum price cannot exceed maximum price', path: ['maxPrice'] })
 export type NftListQuery = z.infer<typeof nftListQuerySchema>
+
+export const collectionCountSchema = z.object({
+  name: z.string().min(1),
+  count: z.number().int().nonnegative(),
+})
+export type CollectionCount = z.infer<typeof collectionCountSchema>
 
 export const nftListResponseSchema = z.object({
   items: z.array(nftSchema),
@@ -70,6 +80,7 @@ export const nftListResponseSchema = z.object({
   page: z.number().int().positive(),
   pageSize: z.number().int().positive(),
   hasNext: z.boolean(),
+  collectionCounts: z.array(collectionCountSchema),
 })
 export type NftListResponse = z.infer<typeof nftListResponseSchema>
 
@@ -130,8 +141,31 @@ export const walletSchema = z.object({
 })
 export type Wallet = z.infer<typeof walletSchema>
 
+export const walletCreateSchema = z.object({
+  label: z.string().trim().min(1).max(60),
+  address: z.string().trim().min(1).max(120),
+  network: z.enum(['ethereum', 'polygon']),
+})
+export type WalletCreate = z.infer<typeof walletCreateSchema>
+
+export const walletUpdateSchema = walletCreateSchema.partial().refine((value) => Object.keys(value).length > 0, 'At least one wallet field is required')
+export type WalletUpdate = z.infer<typeof walletUpdateSchema>
+
 export const profileSchema = userSchema.extend({ bio: z.string(), walletIds: z.array(id) })
 export type Profile = z.infer<typeof profileSchema>
+
+export const profileUpdateSchema = z.object({
+  name: z.string().trim().min(1),
+  bio: z.string().trim().max(280),
+  avatarUrl: z.string().url().nullable(),
+})
+export type ProfileUpdate = z.infer<typeof profileUpdateSchema>
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(8),
+})
+export type ChangePassword = z.infer<typeof changePasswordSchema>
 
 export const orderStatusSchema = z.enum(['pending', 'confirmed', 'declined'])
 export type OrderStatus = z.infer<typeof orderStatusSchema>

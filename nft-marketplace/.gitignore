@@ -11,6 +11,8 @@ node_modules
 dist
 dist-ssr
 *.local
+playwright-report
+test-results
 
 # Editor directories and files
 .vscode/*
@@ -26,3 +28,4 @@ dist-ssr
 
 GOAL.md
 /docs
+/e2e

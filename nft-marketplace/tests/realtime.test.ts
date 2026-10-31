@@ -5,6 +5,7 @@ import { QueryClient } from '@tanstack/react-query'
 import { apiClient, setAuthToken } from '@/lib/http/api-client'
 import { orderSchema, nftUpdatedEventSchema, orderUpdatedEventSchema } from '@/domain/contracts'
 import { applyNftUpdated, applyOrderUpdated, realtimeStaleKey } from '@/lib/realtime/sync'
+import { createRealtimeSocket } from '@/lib/realtime/socket-client'
 import { orderQueryKey } from '@/features/checkout/api'
 import { cartQueryKey } from '@/features/cart/api'
 import { server } from '@/mocks/server'
@@ -23,6 +24,16 @@ async function login(email = 'ada@example.test') {
 }
 
 describe('Socket.IO realtime integration', () => {
+  it('loads socket.io-client after the MSW bootstrap and keeps the mock transport configuration', async () => {
+    const socket = await createRealtimeSocket()
+    expect(socket.io.opts.transports).toEqual(['websocket'])
+    expect(socket.io.opts.path).toBe('/socket.io')
+    expect(socket.io.opts.reconnection).toBe(true)
+    expect(socket.io.opts.reconnectionDelay).toBe(1000)
+    expect(socket.io.opts.randomizationFactor).toBe(0)
+    socket.disconnect()
+  })
+
   it('uses socket.io-client with the configured mock transport and cleans up connections', () => {
     const socket = io('http://localhost', { path: '/socket.io', transports: ['websocket'], autoConnect: false })
     expect(socket.io.opts.transports).toEqual(['websocket'])

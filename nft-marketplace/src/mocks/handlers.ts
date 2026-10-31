@@ -1,8 +1,8 @@
 import { http, HttpResponse, type JsonBodyType } from 'msw'
 import { z } from 'zod'
 import Decimal from 'decimal.js'
-import { cartItemMutationSchema, createOrderRequestSchema, favoriteMutationSchema, loginRequestSchema, nftListQuerySchema, quoteRequestSchema, registerRequestSchema } from '@/domain/contracts'
-import { digestPassword, getCartForUser, getNft, getStoredUser, getTokenFromHeaders, getUserByEmail, getUserIdFromToken, mockStore, toPublicUser } from './store'
+import { cartItemMutationSchema, changePasswordSchema, createOrderRequestSchema, favoriteMutationSchema, loginRequestSchema, nftListQuerySchema, profileUpdateSchema, quoteRequestSchema, registerRequestSchema, walletCreateSchema, walletUpdateSchema } from '@/domain/contracts'
+import { digestPassword, getCartForUser, getNft, getStoredUser, getTokenFromHeaders, getUserByEmail, getUserIdFromToken, mockScenarios, mockStore, toPublicUser } from './store'
 import { emitMockEvent } from './socket'
 
 const ok = (data: JsonBodyType, init?: ResponseInit) => HttpResponse.json(data, init)
@@ -51,8 +51,32 @@ function getQuote(userId: string, couponCode: string | null) {
   const networkFee = new Decimal('0.01')
   return { subtotalEth: subtotal.toFixed(2), discountEth: discount.toFixed(2), networkFeeEth: networkFee.toFixed(2), totalEth: subtotal.minus(discount).plus(networkFee).toFixed(2), couponCode }
 }
+function walletsForUser(userId: string) {
+  const walletIds = mockStore.state.profiles[userId]?.walletIds ?? []
+  return mockStore.state.wallets.filter((wallet) => walletIds.includes(wallet.id))
+}
+function setPrimaryWallet(userId: string, walletId: string) {
+  const ownedWalletIds = new Set(mockStore.state.profiles[userId]?.walletIds ?? [])
+  for (const wallet of mockStore.state.wallets) {
+    if (ownedWalletIds.has(wallet.id)) wallet.isPrimary = wallet.id === walletId
+  }
+}
+function nextWalletId() {
+  const largestId = mockStore.state.wallets.reduce((largest, wallet) => {
+    const match = /^wallet-(\d+)$/.exec(wallet.id)
+    return match ? Math.max(largest, Number(match[1])) : largest
+  }, 0)
+  return `wallet-${largestId + 1}`
+}
 
 export const handlers = [
+  http.put(route('/api/test/scenario'), async ({ request }) => {
+    if (request.headers.get('x-e2e-control') !== 'playwright') return fail(404, 'NOT_FOUND', 'Test control not found')
+    const parsed = z.object({ scenario: z.enum(mockScenarios) }).safeParse(await request.json())
+    if (!parsed.success) return fail(422, 'VALIDATION_ERROR', 'Invalid test scenario')
+    mockStore.state.scenario = parsed.data.scenario
+    return ok({ scenario: mockStore.state.scenario })
+  }),
   http.post(route('/api/auth/login'), async ({ request }) => {
     const parsed = await readJson(request, loginRequestSchema)
     if (!parsed.success) return fail(422, 'VALIDATION_ERROR', 'Invalid login payload')
@@ -60,6 +84,7 @@ export const handlers = [
     if (!user || user.passwordDigest !== await digestPassword(parsed.data.password)) return fail(401, 'INVALID_CREDENTIALS', 'Invalid credentials')
     const token = `token-${user.id}`
     mockStore.state.sessions[token] = user.id
+    mockStore.persist()
     return ok({ token, session: { authenticated: true, user: toPublicUser(user), expiresAt: new Date(Date.now() + 3_600_000).toISOString() } })
   }),
   http.post(route('/api/auth/register'), async ({ request }) => {
@@ -74,6 +99,7 @@ export const handlers = [
     mockStore.state.profiles[id] = { id, email: user.email, name: user.name, avatarUrl: null, bio: user.bio, walletIds: [] }
     const token = `token-${id}`
     mockStore.state.sessions[token] = id
+    mockStore.persist()
     return ok({ token, session: { authenticated: true, user: toPublicUser(user), expiresAt: new Date(Date.now() + 3_600_000).toISOString() } }, { status: 201 })
   }),
   http.get(route('/api/auth/session'), ({ request }) => {
@@ -84,6 +110,7 @@ export const handlers = [
   http.post(route('/api/auth/logout'), ({ request }) => {
     const token = getTokenFromHeaders(request.headers)
     if (token) delete mockStore.state.sessions[token]
+    mockStore.persist()
     return ok({ authenticated: false, user: null, expiresAt: null })
   }),
 
@@ -91,15 +118,19 @@ export const handlers = [
     if (mockStore.state.scenario === 'transient-error') return fail(503, 'TEMPORARY_FAILURE', 'Catalog temporarily unavailable')
     const parsed = nftListQuerySchema.safeParse(Object.fromEntries(new URL(request.url).searchParams))
     if (!parsed.success) return fail(422, 'VALIDATION_ERROR', 'Invalid catalog query')
-    const { search, collection, sort, page, pageSize } = parsed.data
+    const { search, collection, minPrice, maxPrice, network, sort, page, pageSize } = parsed.data
     let items = mockStore.state.nfts.map(withScenario)
     if (mockStore.state.scenario === 'empty-catalog') items = []
     if (search) items = items.filter((nft) => `${nft.name} ${nft.collection}`.toLowerCase().includes(search.toLowerCase()))
+    if (minPrice !== undefined) items = items.filter((nft) => Number(nft.editions[0].priceEth) >= minPrice)
+    if (maxPrice !== undefined) items = items.filter((nft) => Number(nft.editions[0].priceEth) <= maxPrice)
+    if (network) items = items.filter((nft) => nft.network === network)
+    const collectionCounts = Array.from(items.reduce((counts, nft) => counts.set(nft.collection, (counts.get(nft.collection) ?? 0) + 1), new Map<string, number>())).map(([name, count]) => ({ name, count }))
     if (collection) items = items.filter((nft) => nft.collection === collection)
     if (sort === 'price-asc') items.sort((a, b) => Number(a.editions[0].priceEth) - Number(b.editions[0].priceEth))
     if (sort === 'price-desc') items.sort((a, b) => Number(b.editions[0].priceEth) - Number(a.editions[0].priceEth))
     const start = (page - 1) * pageSize
-    return ok({ items: items.slice(start, start + pageSize), total: items.length, page, pageSize, hasNext: start + pageSize < items.length })
+    return ok({ items: items.slice(start, start + pageSize), total: items.length, page, pageSize, hasNext: start + pageSize < items.length, collectionCounts })
   }),
   http.get(route('/api/nfts/:nftId'), ({ params }) => {
     const nft = getNft(String(params.nftId))
@@ -119,6 +150,7 @@ export const handlers = [
     if (!getNft(parsed.data.nftId)) return fail(404, 'NFT_NOT_FOUND', 'NFT not found')
     const favorites = mockStore.state.favorites[result.user.id] ?? []
     if (!favorites.includes(parsed.data.nftId)) favorites.push(parsed.data.nftId)
+    mockStore.persist()
     return ok({ nftIds: favorites })
   }),
   http.delete(route('/api/favorites/:nftId'), ({ request, params }) => {
@@ -126,6 +158,7 @@ export const handlers = [
     if ('response' in result) return result.response
     const favorites = mockStore.state.favorites[result.user.id] ?? []
     mockStore.state.favorites[result.user.id] = favorites.filter((nftId) => nftId !== String(params.nftId))
+    mockStore.persist()
     return ok({ nftIds: mockStore.state.favorites[result.user.id] })
   }),
 
@@ -147,6 +180,7 @@ export const handlers = [
     const index = cart.findIndex((item) => item.nftId === parsed.data.nftId && item.editionId === parsed.data.editionId)
     if (parsed.data.quantity === 0) { if (index >= 0) cart.splice(index, 1) } else if (index >= 0) cart[index].quantity = parsed.data.quantity
     else cart.push(parsed.data)
+    mockStore.persist()
     return ok(getCartResponse(result.user.id))
   }),
 
@@ -165,11 +199,86 @@ export const handlers = [
     if ('response' in result) return result.response
     return ok(mockStore.state.profiles[result.user.id])
   }),
+  http.put(route('/api/profile'), async ({ request }) => {
+    const result = requireUser(request)
+    if ('response' in result) return result.response
+    const parsed = await readJson(request, profileUpdateSchema)
+    if (!parsed.success) return fail(422, 'VALIDATION_ERROR', 'Invalid profile payload')
+    const current = mockStore.state.profiles[result.user.id]
+    const profile = { ...current, ...parsed.data }
+    mockStore.state.profiles[result.user.id] = profile
+    result.user.name = profile.name
+    result.user.avatarUrl = profile.avatarUrl
+    mockStore.persist()
+    return ok(profile)
+  }),
+  http.put(route('/api/auth/password'), async ({ request }) => {
+    const result = requireUser(request)
+    if ('response' in result) return result.response
+    const parsed = await readJson(request, changePasswordSchema)
+    if (!parsed.success) return fail(422, 'VALIDATION_ERROR', 'Invalid password payload')
+    if (result.user.passwordDigest !== await digestPassword(parsed.data.currentPassword)) return fail(401, 'INVALID_CREDENTIALS', 'Current password is incorrect')
+    result.user.passwordDigest = await digestPassword(parsed.data.newPassword)
+    mockStore.persist()
+    return ok({ changed: true })
+  }),
   http.get(route('/api/wallets'), ({ request }) => {
     const result = requireUser(request)
     if ('response' in result) return result.response
-    const walletIds = mockStore.state.profiles[result.user.id].walletIds
-    return ok(mockStore.state.wallets.filter((wallet) => walletIds.includes(wallet.id)))
+    return ok(walletsForUser(result.user.id))
+  }),
+  http.post(route('/api/wallets'), async ({ request }) => {
+    const result = requireUser(request)
+    if ('response' in result) return result.response
+    const parsed = await readJson(request, walletCreateSchema)
+    if (!parsed.success) return fail(422, 'VALIDATION_ERROR', 'Invalid wallet payload')
+    if (walletsForUser(result.user.id).some((wallet) => wallet.address === parsed.data.address)) return fail(409, 'WALLET_CONFLICT', 'This wallet is already registered')
+    const ownedWallets = walletsForUser(result.user.id)
+    const wallet = { id: nextWalletId(), ...parsed.data, isPrimary: ownedWallets.length === 0 }
+    mockStore.state.wallets.push(wallet)
+    mockStore.state.profiles[result.user.id].walletIds.push(wallet.id)
+    mockStore.persist()
+    return ok(wallet, { status: 201 })
+  }),
+  http.patch(route('/api/wallets/:walletId'), async ({ request, params }) => {
+    const result = requireUser(request)
+    if ('response' in result) return result.response
+    const walletId = String(params.walletId)
+    if (!mockStore.state.profiles[result.user.id].walletIds.includes(walletId)) return fail(404, 'WALLET_NOT_FOUND', 'Wallet not found')
+    const parsed = await readJson(request, walletUpdateSchema)
+    if (!parsed.success) return fail(422, 'VALIDATION_ERROR', 'Invalid wallet payload')
+    const wallet = mockStore.state.wallets.find((candidate) => candidate.id === walletId)
+    if (!wallet) return fail(404, 'WALLET_NOT_FOUND', 'Wallet not found')
+    if (parsed.data.address && walletsForUser(result.user.id).some((candidate) => candidate.id !== walletId && candidate.address === parsed.data.address)) return fail(409, 'WALLET_CONFLICT', 'This wallet is already registered')
+    const usedByOrder = mockStore.state.orders.some((order) => order.userId === result.user.id && order.walletId === walletId)
+    const changesOrderIdentity = (parsed.data.address !== undefined && parsed.data.address !== wallet.address) || (parsed.data.network !== undefined && parsed.data.network !== wallet.network)
+    if (usedByOrder && changesOrderIdentity) return fail(409, 'WALLET_IN_USE', 'Address and network cannot change after a wallet is used in an order')
+    Object.assign(wallet, parsed.data)
+    mockStore.persist()
+    return ok(wallet)
+  }),
+  http.put(route('/api/wallets/:walletId/primary'), ({ request, params }) => {
+    const result = requireUser(request)
+    if ('response' in result) return result.response
+    const walletId = String(params.walletId)
+    if (!mockStore.state.profiles[result.user.id].walletIds.includes(walletId)) return fail(404, 'WALLET_NOT_FOUND', 'Wallet not found')
+    setPrimaryWallet(result.user.id, walletId)
+    mockStore.persist()
+    return ok(mockStore.state.wallets.find((wallet) => wallet.id === walletId)!)
+  }),
+  http.delete(route('/api/wallets/:walletId'), ({ request, params }) => {
+    const result = requireUser(request)
+    if ('response' in result) return result.response
+    const walletId = String(params.walletId)
+    const profile = mockStore.state.profiles[result.user.id]
+    if (!profile.walletIds.includes(walletId)) return fail(404, 'WALLET_NOT_FOUND', 'Wallet not found')
+    if (mockStore.state.orders.some((order) => order.userId === result.user.id && order.walletId === walletId)) return fail(409, 'WALLET_IN_USE', 'Wallet is referenced by an existing order')
+    const wasPrimary = mockStore.state.wallets.find((wallet) => wallet.id === walletId)?.isPrimary
+    mockStore.state.wallets = mockStore.state.wallets.filter((wallet) => wallet.id !== walletId)
+    profile.walletIds = profile.walletIds.filter((id) => id !== walletId)
+    if (wasPrimary && profile.walletIds[0]) setPrimaryWallet(result.user.id, profile.walletIds[0])
+    mockStore.persist()
+    return ok({ wallets: walletsForUser(result.user.id) })
   }),
 
   http.post(route('/api/orders'), async ({ request }) => {
@@ -213,6 +322,7 @@ export const handlers = [
         return remaining > 0 ? [{ ...cartItem, quantity: remaining }] : []
       })
     }
+    mockStore.persist()
     if (mockStore.state.scenario === 'order-timeout') return HttpResponse.error()
     return ok(order, { status: status === 'declined' ? 402 : 201 })
   }),

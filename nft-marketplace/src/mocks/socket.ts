@@ -9,9 +9,20 @@ const eventSchemas = {
   'order.updated': orderUpdatedEventSchema,
 } as const
 
-const socketLink = ws.link(socketEndpoint)
+// The Socket.IO binding removes `/socket.io/` before matching. Resolve the
+// browser host dynamically while keeping the Node/MSW default stable.
+const socketLink = ws.link(
+  typeof window === 'undefined' ? socketEndpoint : `ws://${window.location.host}`,
+)
 type SocketConnection = ReturnType<typeof toSocketIo>
 const connections = new Set<SocketConnection>()
+
+export function disconnectMockConnections() {
+  const activeConnections = [...connections]
+  if (typeof window !== 'undefined') console.debug(`[mock-socket] transport-failure connections=${activeConnections.length}`)
+  connections.clear()
+  activeConnections.forEach((connection) => connection.client.emit('mock:disconnect'))
+}
 
 export function emitMockEvent(eventName: keyof typeof eventSchemas, payload: unknown) {
   const parsed = eventSchemas[eventName].safeParse(payload)
@@ -25,7 +36,11 @@ export const socketHandlers = [
     const io = toSocketIo(connection)
     connections.add(io)
     connection.client.addEventListener('close', () => connections.delete(io))
-    io.server.on('mock:emit', (eventName: unknown, payload: unknown) => {
+    io.client.on('mock:emit', (_event: MessageEvent, eventName: unknown, payload: unknown) => {
+      if (eventName === 'mock:disconnect') {
+        disconnectMockConnections()
+        return
+      }
       if (typeof eventName !== 'string' || !(eventName in eventSchemas)) return
       emitMockEvent(eventName as keyof typeof eventSchemas, payload)
     })

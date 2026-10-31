@@ -45,7 +45,10 @@ export function CheckoutPage() {
   const [connectedWalletId, setConnectedWalletId] = useState<string>();
   const [idempotencyKey] = useState(createKey);
   const items = cart.data?.items ?? [];
-  const selectedWallet = wallets.data?.find((wallet) => wallet.id === walletId);
+  const availableWalletId = wallets.data?.some((wallet) => wallet.id === walletId)
+    ? walletId
+    : wallets.data?.find((wallet) => wallet.isPrimary)?.id;
+  const selectedWallet = wallets.data?.find((wallet) => wallet.id === availableWalletId);
 
   if (!isAuthenticated(session.data))
     return (
@@ -137,7 +140,7 @@ export function CheckoutPage() {
           <label htmlFor="wallet">Wallet</label>
           <select
             id="wallet"
-            value={walletId ?? ""}
+            value={availableWalletId ?? ""}
             onChange={(event) => {
               setWalletId(event.target.value || undefined);
               setConnectedWalletId(undefined);

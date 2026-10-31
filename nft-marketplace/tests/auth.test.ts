@@ -29,12 +29,12 @@ describe('authentication flow', () => {
     const values = new Map<string, string>()
     vi.stubGlobal('window', { localStorage: { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => { values.set(key, value) }, removeItem: (key: string) => { values.delete(key) } } })
     const result = await login({ email: 'ada@example.test', password: 'demo-password' })
-    expect(values.size).toBe(1)
+    expect(values.get('nft-marketplace.auth-token')).toBe(result.token)
     delete apiClient.defaults.headers.common.Authorization
     restoreAuthToken()
     expect(apiClient.defaults.headers.common.Authorization).toBe(`Bearer ${result.token}`)
     await logout()
-    expect(values.size).toBe(0)
+    expect(values.get('nft-marketplace.auth-token')).toBeUndefined()
     expect(apiClient.defaults.headers.common.Authorization).toBeUndefined()
   })
 

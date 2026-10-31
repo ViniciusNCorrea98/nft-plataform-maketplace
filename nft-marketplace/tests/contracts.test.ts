@@ -20,20 +20,36 @@ async function login(email: string) {
 describe('REST contracts through MSW and Axios', () => {
   it('validates catalog responses and the empty scenario', async () => {
     const response = await apiClient.get('/nfts', { params: { page: 1, pageSize: 2 } })
-    expect(nftListResponseSchema.parse(response.data).items).toHaveLength(2)
+    const parsed = nftListResponseSchema.parse(response.data)
+    expect(parsed.items).toHaveLength(2)
+    expect(parsed.collectionCounts).toEqual(expect.arrayContaining([
+      { name: 'Emerald Apes', count: 1 },
+      { name: 'Fotografia', count: 2 },
+      { name: 'Arte 3D', count: 2 },
+    ]))
     mockStore.reset('empty-catalog')
     const empty = await apiClient.get('/nfts', { params: { page: 1, pageSize: 2 } })
-    expect(nftListResponseSchema.parse(empty.data).total).toBe(0)
+    expect(nftListResponseSchema.parse(empty.data)).toMatchObject({ total: 0, collectionCounts: [] })
   })
 
   it('applies search, ordering and pagination through the catalog contract', async () => {
     const filtered = await fetchCatalog({ search: 'Violet', sort: 'price-desc', page: 1, pageSize: 1 })
-    expect(filtered.items.map((item) => item.id)).toEqual(['nft-2'])
+    expect(filtered.items.map((item) => item.id)).toEqual(['nft-5'])
     expect(filtered.page).toBe(1)
     expect(filtered.pageSize).toBe(1)
-    const secondPage = await fetchCatalog({ sort: 'featured', page: 2, pageSize: 2 })
-    expect(secondPage.items).toHaveLength(1)
+    const secondPage = await fetchCatalog({ sort: 'featured', page: 2, pageSize: 6 })
+    expect(secondPage.items).toHaveLength(3)
     expect(secondPage.hasNext).toBe(false)
+    const priceAndNetwork = await fetchCatalog({ minPrice: 1.2, maxPrice: 1.8, network: 'polygon', sort: 'featured', page: 1, pageSize: 9 })
+    expect(priceAndNetwork.items.map((item) => item.id)).toEqual(['nft-2', 'nft-5', 'nft-8'].filter((id) => id !== 'nft-8'))
+  })
+
+  it('keeps nine unique demonstration NFTs with three intentional catalog images', () => {
+    const ids = mockStore.state.nfts.map((nft) => nft.id)
+    const imageCounts = Object.values(mockStore.state.nfts.reduce<Record<string, number>>((counts, nft) => ({ ...counts, [nft.imageUrl]: (counts[nft.imageUrl] ?? 0) + 1 }), {}))
+    expect(ids).toHaveLength(9)
+    expect(new Set(ids).size).toBe(9)
+    expect(imageCounts.sort()).toEqual([3, 3, 3])
   })
 
   it('returns a typed detail and a deterministic not-found error', async () => {

@@ -40,6 +40,6 @@ export function getSession(queryClient: QueryClient) {
   return queryClient.fetchQuery(getSessionQuery())
 }
 
-export function isAuthenticated(session: Session | undefined) {
+export function isAuthenticated(session: Session | undefined): session is Session & { authenticated: true; user: NonNullable<Session['user']> } {
   return session?.authenticated === true && session.user !== null
 }
