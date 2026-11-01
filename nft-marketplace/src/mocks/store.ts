@@ -1,7 +1,7 @@
 import nftFourImage from '@/assets/nftFour.svg'
 import nftThreeImage from '@/assets/nftThree.svg'
 import nftTwoImage from '@/assets/nftTwo.svg'
-import { orderSchema, profileSchema, walletSchema, type Nft, type Order, type Profile, type User, type Wallet } from '@/domain/contracts'
+import { orderSchema, profileSchema, walletSchema, type CollectorSnapshot, type Nft, type Order, type Profile, type User, type Wallet } from '@/domain/contracts'
 import { z } from 'zod'
 
 export const mockScenarios = ['default', 'empty-catalog', 'transient-error', 'session-expired', 'invalid-coupon', 'price-changed', 'payment-declined', 'order-timeout'] as const
@@ -17,7 +17,7 @@ export type MockState = {
   favorites: Record<string, string[]>
   carts: Record<string, CartRecord[]>
   orders: Order[]
-  idempotencyKeys: Record<string, { userId: string; walletId: string; network: Wallet['network']; couponCode: string | null; quoteTotalEth: string }>
+  idempotencyKeys: Record<string, { userId: string; walletId: string; network: Wallet['network']; couponCode: string | null; quoteTotalEth: string; collector: CollectorSnapshot }>
   sessions: Record<string, string>
   profiles: Record<string, Profile>
 }
@@ -30,6 +30,9 @@ const idempotencyRecordSchema = z.object({
   network: z.enum(['ethereum', 'polygon']),
   couponCode: z.string().nullable(),
   quoteTotalEth: z.string().min(1),
+  collector: z.object({
+    displayName: z.string().min(1), username: z.string().min(1), profileName: z.string().min(1), email: z.string().email(), ensName: z.string().min(1), walletAddress: z.string().min(1), note: z.string().nullable(),
+  }),
 })
 const persistedUserSchema = z.object({
   id: z.string().min(1),

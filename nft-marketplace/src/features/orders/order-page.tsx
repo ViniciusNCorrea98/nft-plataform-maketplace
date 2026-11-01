@@ -61,11 +61,26 @@ export function OrderPage() {
       <div className="state-panel order-status" role="status">
         <p>Order {data.id}</p>
         <strong>{data.status}</strong>
+        <p>This is a simulated payment; no blockchain transaction was submitted.</p>
         {data.transactionReference && (
-          <p>Transaction: {data.transactionReference}</p>
+          <p>Simulated reference: {data.transactionReference}</p>
         )}
-        <p>Total: {data.totalEth} ETH</p>
+        <dl className="order-receipt-details">
+          <div><dt>Subtotal</dt><dd>{data.subtotalEth} ETH</dd></div>
+          <div><dt>Discount</dt><dd>- {data.discountEth} ETH</dd></div>
+          <div><dt>Network fee</dt><dd>{data.networkFeeEth} ETH</dd></div>
+          <div><dt>Total</dt><dd>{data.totalEth} ETH</dd></div>
+          <div><dt>Network</dt><dd>{data.network}</dd></div>
+          <div><dt>Wallet</dt><dd>{data.collector.walletAddress}</dd></div>
+        </dl>
       </div>
+      <section className="order-status order-collector" aria-labelledby="collector-snapshot-heading">
+        <h2 id="collector-snapshot-heading">Collector snapshot</h2>
+        <p>{data.collector.displayName} · @{data.collector.username}</p>
+        <p>{data.collector.profileName} · {data.collector.email}</p>
+        <p>{data.collector.ensName}.eth</p>
+        {data.collector.note && <p>{data.collector.note}</p>}
+      </section>
       <section className="order-items" aria-label="Purchased items">
         {data.items.map((item) => (
           <article

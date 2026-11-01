@@ -21,7 +21,8 @@ async function addAdaItem() {
   await apiClient.put('/cart/items', { nftId: 'nft-1', editionId: 'edition-1', quantity: 1 })
 }
 
-const orderInput = (quoteTotalEth: string, couponCode: string | null = null) => ({ walletId: 'wallet-1', network: 'ethereum' as const, couponCode, quoteTotalEth })
+const collector = { displayName: 'Ada Lovelace', username: 'ada', profileName: 'Ada collection', email: 'ada@example.test', ensName: 'ada', walletAddress: '0xADA0000000000000000000000000000000000001', note: null }
+const orderInput = (quoteTotalEth: string, couponCode: string | null = null) => ({ walletId: 'wallet-1', network: 'ethereum' as const, couponCode, quoteTotalEth, collector })
 
 describe('checkout and order contracts', () => {
   it('creates a confirmed order with the quoted subtotal, discount and total, then clears only the bought cart', async () => {
@@ -29,6 +30,7 @@ describe('checkout and order contracts', () => {
     const quote = (await apiClient.post('/quotes', { couponCode: 'WELCOME10' })).data
     const order = await createOrder({ payload: orderInput(quote.totalEth, 'WELCOME10'), idempotencyKey: 'confirmed-1' })
     expect(order).toMatchObject({ status: 'confirmed', subtotalEth: '1.19', discountEth: '0.12', totalEth: '1.08' })
+    expect(order.collector).toEqual(collector)
     expect((await apiClient.get('/cart')).data.items).toHaveLength(0)
   })
 
@@ -39,6 +41,13 @@ describe('checkout and order contracts', () => {
     expect(second.id).toBe(first.id)
     await expect(createOrder({ payload: orderInput('1.20', 'WELCOME10'), idempotencyKey: 'same-key' })).rejects.toMatchObject({ response: { status: 409 } })
     expect(mockStore.state.orders).toHaveLength(1)
+  })
+
+  it('requires a valid collector snapshot and treats changed collector data as an idempotency conflict', async () => {
+    await addAdaItem()
+    await expect(apiClient.post('/orders', { walletId: 'wallet-1', network: 'ethereum', couponCode: null }, { headers: { 'Idempotency-Key': 'invalid-collector' } })).rejects.toMatchObject({ response: { status: 422 } })
+    await createOrder({ payload: orderInput('1.20'), idempotencyKey: 'collector-key' })
+    await expect(createOrder({ payload: { ...orderInput('1.20'), collector: { ...collector, username: 'another-ada' } }, idempotencyKey: 'collector-key' })).rejects.toMatchObject({ response: { status: 409 } })
   })
 
   it('requires quote revalidation and preserves the cart after a price change', async () => {
@@ -74,6 +83,6 @@ describe('checkout and order contracts', () => {
     mockStore.state.carts['user-2'] = [{ nftId: 'nft-2', editionId: 'edition-2', quantity: 1 }]
     await login('alan@example.test')
     await expect(fetchOrder('private-key')).rejects.toMatchObject({ response: { status: 404 } })
-    await expect(createOrder({ payload: { walletId: 'wallet-2', network: 'polygon', couponCode: null, quoteTotalEth: '1.30' }, idempotencyKey: 'private-key' })).rejects.toMatchObject({ response: { status: 409 } })
+    await expect(createOrder({ payload: { walletId: 'wallet-2', network: 'polygon', couponCode: null, quoteTotalEth: '1.30', collector: { ...collector, walletAddress: '0xALA0000000000000000000000000000000002' } }, idempotencyKey: 'private-key' })).rejects.toMatchObject({ response: { status: 409 } })
   })
 })

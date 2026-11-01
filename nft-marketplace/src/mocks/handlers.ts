@@ -290,7 +290,7 @@ export const handlers = [
     if (!idempotencyKey) return fail(400, 'IDEMPOTENCY_KEY_REQUIRED', 'Idempotency-Key is required')
     const existingKey = mockStore.state.idempotencyKeys[idempotencyKey]
     if (existingKey) {
-      const sameOperation = existingKey.userId === result.user.id && existingKey.walletId === parsed.data.walletId && existingKey.network === parsed.data.network && existingKey.couponCode === parsed.data.couponCode && (!parsed.data.quoteTotalEth || existingKey.quoteTotalEth === parsed.data.quoteTotalEth)
+      const sameOperation = existingKey.userId === result.user.id && existingKey.walletId === parsed.data.walletId && existingKey.network === parsed.data.network && existingKey.couponCode === parsed.data.couponCode && (!parsed.data.quoteTotalEth || existingKey.quoteTotalEth === parsed.data.quoteTotalEth) && JSON.stringify(existingKey.collector) === JSON.stringify(parsed.data.collector)
       if (!sameOperation) return fail(409, 'IDEMPOTENCY_KEY_CONFLICT', 'Idempotency key was already used for another operation')
       const existing = mockStore.state.orders.find((order) => order.id === idempotencyKey)
       return existing ? ok(existing) : fail(409, 'ORDER_UNAVAILABLE', 'Order result is not available')
@@ -311,8 +311,8 @@ export const handlers = [
     })
     if (items.length !== cart.length) return fail(409, 'OUT_OF_STOCK', 'An item is no longer available')
     const status: 'pending' | 'confirmed' | 'declined' = mockStore.state.scenario === 'payment-declined' ? 'declined' : mockStore.state.scenario === 'order-timeout' ? 'pending' : 'confirmed'
-    const order = { id: idempotencyKey, userId: result.user.id, status, transactionReference: status === 'confirmed' ? `tx-${idempotencyKey}` : null, items, subtotalEth: quote.subtotalEth, discountEth: quote.discountEth, networkFeeEth: quote.networkFeeEth, totalEth: quote.totalEth, walletId: parsed.data.walletId, network: parsed.data.network, createdAt: now() }
-    mockStore.state.idempotencyKeys[idempotencyKey] = { userId: result.user.id, walletId: parsed.data.walletId, network: parsed.data.network, couponCode: parsed.data.couponCode, quoteTotalEth: requestedQuoteTotal }
+    const order = { id: idempotencyKey, userId: result.user.id, status, transactionReference: status === 'confirmed' ? `tx-${idempotencyKey}` : null, items, subtotalEth: quote.subtotalEth, discountEth: quote.discountEth, networkFeeEth: quote.networkFeeEth, totalEth: quote.totalEth, walletId: parsed.data.walletId, network: parsed.data.network, collector: parsed.data.collector, createdAt: now() }
+    mockStore.state.idempotencyKeys[idempotencyKey] = { userId: result.user.id, walletId: parsed.data.walletId, network: parsed.data.network, couponCode: parsed.data.couponCode, quoteTotalEth: requestedQuoteTotal, collector: parsed.data.collector }
     mockStore.state.orders.push(order)
     emitMockEvent('order.updated', { id: order.id, userId: order.userId, version: 1, order })
     if (status === 'confirmed') {

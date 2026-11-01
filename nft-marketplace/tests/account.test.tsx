@@ -117,7 +117,7 @@ describe('wallet management and checkout consistency', () => {
   it('keeps order wallet snapshots stable and rejects removal or identity changes after checkout', async () => {
     await signIn()
     await updateCartItem({ nftId: 'nft-1', editionId: 'edition-1', quantity: 1 })
-    await createOrder({ idempotencyKey: 'wallet-history', payload: { walletId: 'wallet-1', network: 'ethereum', couponCode: null, quoteTotalEth: '1.20' } })
+    await createOrder({ idempotencyKey: 'wallet-history', payload: { walletId: 'wallet-1', network: 'ethereum', couponCode: null, quoteTotalEth: '1.20', collector: { displayName: 'Ada Lovelace', username: 'ada', profileName: 'Ada collection', email: 'ada@example.test', ensName: 'ada', walletAddress: '0xADA0000000000000000000000000000000001', note: null } } })
 
     await expect(deleteWallet('wallet-1')).rejects.toMatchObject({ response: { status: 409 } })
     await expect(updateWallet({ walletId: 'wallet-1', changes: { address: '0xCHANGED' } })).rejects.toMatchObject({ response: { status: 409 } })
@@ -132,7 +132,7 @@ describe('wallet management and checkout consistency', () => {
     await deleteWallet(created.id)
     expect((await fetchWallets()).map((wallet) => wallet.id)).not.toContain(created.id)
     await updateCartItem({ nftId: 'nft-1', editionId: 'edition-1', quantity: 1 })
-    await expect(createOrder({ idempotencyKey: 'removed-wallet', payload: { walletId: created.id, network: 'polygon', couponCode: null, quoteTotalEth: '1.20' } })).rejects.toMatchObject({ response: { status: 422 } })
+    await expect(createOrder({ idempotencyKey: 'removed-wallet', payload: { walletId: created.id, network: 'polygon', couponCode: null, quoteTotalEth: '1.20', collector: { displayName: 'Ada Lovelace', username: 'ada', profileName: 'Ada collection', email: 'ada@example.test', ensName: 'ada', walletAddress: created.address, note: null } } })).rejects.toMatchObject({ response: { status: 422 } })
 
     server.use(http.get('http://localhost/api/wallets', () => HttpResponse.json({ code: 'TEMPORARY_FAILURE', message: 'Wallets unavailable' }, { status: 503 })))
     await expect(fetchWallets()).rejects.toMatchObject({ response: { status: 503 } })

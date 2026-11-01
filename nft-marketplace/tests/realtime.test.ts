@@ -70,7 +70,7 @@ describe('Socket.IO realtime integration', () => {
 
   it('updates only the owning order, preserves terminal states and validates payloads', async () => {
     await login()
-    const order = orderSchema.parse({ id: 'order-realtime', userId: 'user-1', status: 'pending', transactionReference: null, items: [{ ...mockStore.state.nfts[0].editions[0], nftId: 'nft-1', editionId: 'edition-1', quantity: 1, unitPriceEth: '1.19', availableQuantity: 2, version: 1, name: 'Emerald Ape #042' }], subtotalEth: '1.19', discountEth: '0.00', networkFeeEth: '0.01', totalEth: '1.20', walletId: 'wallet-1', network: 'ethereum', createdAt: new Date().toISOString() })
+    const order = orderSchema.parse({ id: 'order-realtime', userId: 'user-1', status: 'pending', transactionReference: null, items: [{ ...mockStore.state.nfts[0].editions[0], nftId: 'nft-1', editionId: 'edition-1', quantity: 1, unitPriceEth: '1.19', availableQuantity: 2, version: 1, name: 'Emerald Ape #042' }], subtotalEth: '1.19', discountEth: '0.00', networkFeeEth: '0.01', totalEth: '1.20', walletId: 'wallet-1', network: 'ethereum', collector: { displayName: 'Ada Lovelace', username: 'ada', profileName: 'Ada collection', email: 'ada@example.test', ensName: 'ada', walletAddress: '0xADA0000000000000000000000000000000001', note: null }, createdAt: new Date().toISOString() })
     const queryClient = new QueryClient()
     queryClient.setQueryData(orderQueryKey('user-1', order.id), order)
     const confirmed = orderUpdatedEventSchema.parse({ id: order.id, userId: 'user-1', version: 2, order: { ...order, status: 'confirmed', transactionReference: 'tx-1' } })

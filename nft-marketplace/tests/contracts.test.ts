@@ -78,7 +78,7 @@ describe('REST contracts through MSW and Axios', () => {
   it('requires idempotency and returns the same order on retry', async () => {
     await login('ada@example.test')
     await apiClient.put('/cart/items', { nftId: 'nft-1', editionId: 'edition-1', quantity: 1 })
-    const payload = { walletId: 'wallet-1', network: 'ethereum', couponCode: null }
+    const payload = { walletId: 'wallet-1', network: 'ethereum', couponCode: null, collector: { displayName: 'Ada Lovelace', username: 'ada', profileName: 'Ada collection', email: 'ada@example.test', ensName: 'ada', walletAddress: '0xADA0000000000000000000000000000000001', note: null } }
     const first = await apiClient.post('/orders', payload, { headers: { 'Idempotency-Key': 'order-attempt-1' } })
     const second = await apiClient.post('/orders', payload, { headers: { 'Idempotency-Key': 'order-attempt-1' } })
     expect(first.data.id).toBe(second.data.id)

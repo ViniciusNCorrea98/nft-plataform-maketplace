@@ -92,6 +92,7 @@ export function orderEvent(orderId: string, status: 'pending' | 'confirmed', ver
     totalEth: '1.20',
     walletId: 'wallet-1',
     network: 'ethereum',
+    collector: { displayName: 'Ada Lovelace', username: 'ada', profileName: 'Ada collection', email: 'ada@example.test', ensName: 'ada', walletAddress: '0xADA0000000000000000000000000000000001', note: null },
     createdAt: '2026-10-31T12:00:00.000Z',
   }
   return { id: orderId, userId: 'user-1', version, order }

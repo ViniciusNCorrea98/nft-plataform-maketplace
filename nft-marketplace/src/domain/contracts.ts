@@ -170,6 +170,17 @@ export type ChangePassword = z.infer<typeof changePasswordSchema>
 export const orderStatusSchema = z.enum(['pending', 'confirmed', 'declined'])
 export type OrderStatus = z.infer<typeof orderStatusSchema>
 
+export const collectorSnapshotSchema = z.object({
+  displayName: z.string().trim().min(1, 'Display name is required').max(80),
+  username: z.string().trim().min(1, 'Username is required').max(60),
+  profileName: z.string().trim().min(1, 'Profile name is required').max(80),
+  email: z.string().trim().email('A valid email is required'),
+  ensName: z.string().trim().min(1, 'ENS name is required').max(80),
+  walletAddress: z.string().trim().min(1, 'A connected wallet is required').max(120),
+  note: z.string().trim().max(280).nullable(),
+})
+export type CollectorSnapshot = z.infer<typeof collectorSnapshotSchema>
+
 export const orderItemSnapshotSchema = cartItemSchema.extend({ name: z.string().min(1) })
 export const orderSchema = z.object({
   id,
@@ -183,6 +194,7 @@ export const orderSchema = z.object({
   totalEth: ethAmount,
   walletId: id,
   network: z.enum(['ethereum', 'polygon']),
+  collector: collectorSnapshotSchema,
   createdAt: z.string().datetime(),
 })
 export type Order = z.infer<typeof orderSchema>
@@ -207,6 +219,7 @@ export const createOrderRequestSchema = z.object({
   network: z.enum(['ethereum', 'polygon']),
   couponCode: z.string().trim().min(1).nullable(),
   quoteTotalEth: ethAmount.optional(),
+  collector: collectorSnapshotSchema,
 })
 export type CreateOrderRequest = z.infer<typeof createOrderRequestSchema>
 
