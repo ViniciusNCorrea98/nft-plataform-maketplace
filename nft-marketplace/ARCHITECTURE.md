@@ -36,4 +36,4 @@ As telas usam labels associados, foco visivel, feedback textual e componentes co
 
 - Blockchain, extensoes de carteira, pagamentos e explorador de transacoes sao simulados, conforme o escopo do desafio.
 - O Socket.IO mock e destinado ao navegador/MSW; um backend real deve fornecer autenticacao do handshake, autorizacao de canais e retencao/replay de eventos.
-- Os relatórios Lighthouse sao gerados por perfil em `lighthouse-reports/`. As metricas dependem da versao local do Chromium e do ambiente de execucao; o relatorio versionado registra essas condicoes junto aos artefatos. Nesta medicao, os SVGs rasterizados e a estabilizacao tardia do detalhe impedem atingir as metas de Performance e CLS.
+- Os relatórios Lighthouse são gerados por perfil em `lighthouse-reports/`. As métricas dependem da versão local do Chromium e do ambiente de execução; o relatório versionado registra essas condições junto aos artefatos. A conversão dos assets para WebP e a reserva de espaço no skeleton corrigiram o CLS; a Performance ainda demanda redução do custo de inicialização e do LCP.

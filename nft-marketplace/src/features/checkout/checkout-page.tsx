@@ -337,7 +337,7 @@ export function CheckoutPage() {
                 >
                   <div className="summary-item-image">
                     {nft?.imageUrl ? (
-                      <img src={nft.imageUrl} alt="" />
+                      <img src={nft.imageUrl} alt="" width={96} height={96} decoding="async" />
                     ) : (
                       <span>{item.nftId.replace("nft-", "#")}</span>
                     )}

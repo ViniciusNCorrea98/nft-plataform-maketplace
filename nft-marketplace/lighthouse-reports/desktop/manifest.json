@@ -2,73 +2,73 @@
   {
     "url": "http://127.0.0.1:4173/",
     "isRepresentativeRun": false,
-    "htmlPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\desktop\\127_0_0_1--2026_11_01_13_37_23.report.html",
-    "jsonPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\desktop\\127_0_0_1--2026_11_01_13_37_23.report.json",
+    "htmlPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\desktop\\127_0_0_1--2026_11_01_13_52_21.report.html",
+    "jsonPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\desktop\\127_0_0_1--2026_11_01_13_52_21.report.json",
     "summary": {
-      "performance": 0.64,
+      "performance": 0.59,
       "accessibility": 0.98,
       "best-practices": 1,
-      "seo": 0.83
+      "seo": 0.92
     }
   },
   {
     "url": "http://127.0.0.1:4173/",
     "isRepresentativeRun": false,
-    "htmlPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\desktop\\127_0_0_1--2026_11_01_13_37_53.report.html",
-    "jsonPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\desktop\\127_0_0_1--2026_11_01_13_37_53.report.json",
+    "htmlPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\desktop\\127_0_0_1--2026_11_01_13_52_53.report.html",
+    "jsonPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\desktop\\127_0_0_1--2026_11_01_13_52_53.report.json",
     "summary": {
       "performance": 0.64,
       "accessibility": 0.98,
       "best-practices": 1,
-      "seo": 0.83
+      "seo": 0.92
     }
   },
   {
     "url": "http://127.0.0.1:4173/nft/nft-1",
     "isRepresentativeRun": false,
-    "htmlPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\desktop\\127_0_0_1-nft_nft_1-2026_11_01_13_38_20.report.html",
-    "jsonPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\desktop\\127_0_0_1-nft_nft_1-2026_11_01_13_38_20.report.json",
+    "htmlPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\desktop\\127_0_0_1-nft_nft_1-2026_11_01_13_53_06.report.html",
+    "jsonPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\desktop\\127_0_0_1-nft_nft_1-2026_11_01_13_53_06.report.json",
     "summary": {
-      "performance": 0.42,
+      "performance": 0.64,
       "accessibility": 0.96,
       "best-practices": 1,
-      "seo": 0.83
+      "seo": 0.92
     }
   },
   {
     "url": "http://127.0.0.1:4173/nft/nft-1",
     "isRepresentativeRun": false,
-    "htmlPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\desktop\\127_0_0_1-nft_nft_1-2026_11_01_13_38_34.report.html",
-    "jsonPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\desktop\\127_0_0_1-nft_nft_1-2026_11_01_13_38_34.report.json",
+    "htmlPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\desktop\\127_0_0_1-nft_nft_1-2026_11_01_13_53_32.report.html",
+    "jsonPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\desktop\\127_0_0_1-nft_nft_1-2026_11_01_13_53_32.report.json",
     "summary": {
-      "performance": 0.42,
+      "performance": 0.64,
       "accessibility": 0.96,
       "best-practices": 1,
-      "seo": 0.83
+      "seo": 0.92
     }
   },
   {
     "url": "http://127.0.0.1:4173/",
     "isRepresentativeRun": true,
-    "htmlPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\desktop\\127_0_0_1--2026_11_01_13_37_39.report.html",
-    "jsonPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\desktop\\127_0_0_1--2026_11_01_13_37_39.report.json",
+    "htmlPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\desktop\\127_0_0_1--2026_11_01_13_51_58.report.html",
+    "jsonPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\desktop\\127_0_0_1--2026_11_01_13_51_58.report.json",
     "summary": {
-      "performance": 0.64,
+      "performance": 0.6,
       "accessibility": 0.98,
       "best-practices": 1,
-      "seo": 0.83
+      "seo": 0.92
     }
   },
   {
     "url": "http://127.0.0.1:4173/nft/nft-1",
     "isRepresentativeRun": true,
-    "htmlPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\desktop\\127_0_0_1-nft_nft_1-2026_11_01_13_38_07.report.html",
-    "jsonPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\desktop\\127_0_0_1-nft_nft_1-2026_11_01_13_38_07.report.json",
+    "htmlPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\desktop\\127_0_0_1-nft_nft_1-2026_11_01_13_53_19.report.html",
+    "jsonPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\desktop\\127_0_0_1-nft_nft_1-2026_11_01_13_53_19.report.json",
     "summary": {
-      "performance": 0.42,
+      "performance": 0.64,
       "accessibility": 0.96,
       "best-practices": 1,
-      "seo": 0.83
+      "seo": 0.92
     }
   }
 ]

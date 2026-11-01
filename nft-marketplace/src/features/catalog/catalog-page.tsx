@@ -1,10 +1,10 @@
 import { ChevronRight, Search, SlidersHorizontal } from "lucide-react";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
-import heroImage from "@/assets/nftOne.svg";
-import journalImage from "@/assets/nftOne.svg";
-import editorialOne from "@/assets/nftThree.svg";
-import editorialTwo from "@/assets/nftFour.svg";
+import heroImage from "@/assets/nftOne.webp";
+import journalImage from "@/assets/nftOne.webp";
+import editorialOne from "@/assets/nftThree.webp";
+import editorialTwo from "@/assets/nftFour.webp";
 import type { NftListQuery } from "@/domain/contracts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -98,6 +98,10 @@ export function CatalogPage() {
             className="hero-art-image"
             src={heroImage}
             alt="Arte digital em destaque"
+            width={268}
+            height={195}
+            fetchPriority="high"
+            decoding="async"
           />
         </div>
       </section>
@@ -141,7 +145,7 @@ export function CatalogPage() {
           </section>
           <section className="featured-rail">
             <p>NFT EM DESTAQUE</p>
-            <Link to="/nft/$id" params={{ id: "nft-4" }}><img src={editorialOne} alt="Cosmic Bloom #118" /><strong>Cosmic Bloom #118</strong><span>1.29 ETH</span></Link>
+            <Link to="/nft/$id" params={{ id: "nft-4" }}><img src={editorialOne} alt="Cosmic Bloom #118" width={250} height={250} loading="lazy" decoding="async" /><strong>Cosmic Bloom #118</strong><span>1.29 ETH</span></Link>
           </section>
         </aside>
         <div className="catalog-content">
@@ -245,7 +249,7 @@ export function CatalogPage() {
       </section>
       <section className="promos" id="editorial">
         <article>
-          <img src={heroImage} alt="Coleção com edições limitadas" />
+          <img src={heroImage} alt="Coleção com edições limitadas" width={268} height={195} loading="lazy" decoding="async" />
           <div>
             <h2>
               Lançamentos gênesis
@@ -262,7 +266,7 @@ export function CatalogPage() {
           </div>
         </article>
         <article>
-          <img src={editorialTwo} alt="Arte digital selecionada" />
+          <img src={editorialTwo} alt="Arte digital selecionada" width={250} height={250} loading="lazy" decoding="async" />
           <div>
             <h2>
               Arte digital selecionada
@@ -287,7 +291,7 @@ export function CatalogPage() {
         <div>
           {journal.map(([image, date, title, copy]) => (
             <article key={title}>
-              <img src={image} alt="" />
+              <img src={image} alt="" width={250} height={250} loading="lazy" decoding="async" />
               <small>{date} &nbsp; | &nbsp; Leitura de 3 min</small>
               <h3>{title}</h3>
               <p>{copy}</p>

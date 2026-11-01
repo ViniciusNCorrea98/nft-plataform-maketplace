@@ -1,6 +1,6 @@
-import nftFourImage from '@/assets/nftFour.svg'
-import nftThreeImage from '@/assets/nftThree.svg'
-import nftTwoImage from '@/assets/nftTwo.svg'
+import nftFourImage from '@/assets/nftFour.webp'
+import nftThreeImage from '@/assets/nftThree.webp'
+import nftTwoImage from '@/assets/nftTwo.webp'
 import { orderSchema, profileSchema, walletSchema, type CollectorSnapshot, type Nft, type Order, type Profile, type User, type Wallet } from '@/domain/contracts'
 import { z } from 'zod'
 

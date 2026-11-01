@@ -49,6 +49,10 @@ export function DetailPage() {
             <img
               src={nft.imageUrl}
               alt={nft.name}
+              width={250}
+              height={250}
+              fetchPriority="high"
+              decoding="async"
               onError={(event) => {
                 event.currentTarget.style.display = "none";
               }}
@@ -57,7 +61,7 @@ export function DetailPage() {
           </div>
           <div className="thumbnail-row">
             <div className="thumbnail active" aria-label="Imagem principal">
-              <img src={nft.imageUrl} alt="" />
+              <img src={nft.imageUrl} alt="" width={96} height={96} decoding="async" />
             </div>
             <button
               className="thumbnail"
@@ -132,6 +136,10 @@ export function DetailPage() {
                 <img
                   src={item.imageUrl}
                   alt={item.name}
+                  width={250}
+                  height={250}
+                  loading="lazy"
+                  decoding="async"
                   onError={(event) => {
                     event.currentTarget.style.display = "none";
                   }}

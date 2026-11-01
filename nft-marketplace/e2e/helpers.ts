@@ -70,7 +70,7 @@ export function nftEvent(version: number, priceEth: string) {
     id: 'nft-1',
     name: 'Emerald Ape #042',
     collection: 'Emerald Apes',
-    imageUrl: '/src/assets/nftTwo.svg',
+    imageUrl: '/src/assets/nftTwo.webp',
     description: 'A simulated collectible for deterministic tests.',
     creator: 'Emerald Studio',
     version,

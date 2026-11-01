@@ -11,6 +11,10 @@ export function NftCard({ nft }: { nft: Nft }) {
         <img
           src={nft.imageUrl}
           alt={`${nft.name}, ${nft.collection}`}
+          width={250}
+          height={250}
+          loading="lazy"
+          decoding="async"
           onError={(event) => {
             event.currentTarget.style.display = "none";
           }}

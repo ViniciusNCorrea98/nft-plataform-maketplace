@@ -840,6 +840,17 @@ a {
   animation: shimmer 1.4s infinite;
   border: 1px solid var(--line);
 }
+.detail-skeleton {
+  width: min(100%, 630px);
+  min-height: 0;
+  aspect-ratio: 1;
+}
+@media (max-width: 760px) {
+  .detail-skeleton {
+    width: 100%;
+    min-height: 1500px;
+  }
+}
 @keyframes shimmer {
   to {
     background-position: -200% 0;

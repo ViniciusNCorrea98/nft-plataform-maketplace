@@ -69,7 +69,7 @@ export function CartPage() {
               return (
                 <article className="cart-item" key={`${item.nftId}-${item.editionId}`}>
                   <div className="cart-item-image">
-                    {nft ? <img src={nft.imageUrl} alt="" /> : <span>{item.nftId.replace("nft-", "#")}</span>}
+                    {nft ? <img src={nft.imageUrl} alt="" width={96} height={96} decoding="async" /> : <span>{item.nftId.replace("nft-", "#")}</span>}
                   </div>
                   <div className="cart-item-info"><p className="eyebrow">{nft?.name ?? item.nftId}</p><h2>ID do token: #{item.nftId.replace("nft-", "")}</h2><p>{item.editionId} · {item.availableQuantity} disponíveis</p></div>
                   <strong className="cart-item-price">{item.unitPriceEth} ETH</strong>
@@ -109,7 +109,7 @@ export function CartPage() {
           <div className="cart-recommendations-grid">
             {recommendations.map((nft) => {
               const edition = nft.editions[0];
-              return <Link key={nft.id} to="/nft/$id" params={{ id: nft.id }} className="cart-recommendation-card"><img src={nft.imageUrl} alt={nft.name} /><span>{nft.name}</span><strong>{edition.priceEth} ETH</strong></Link>;
+              return <Link key={nft.id} to="/nft/$id" params={{ id: nft.id }} className="cart-recommendation-card"><img src={nft.imageUrl} alt={nft.name} width={250} height={250} loading="lazy" decoding="async" /><span>{nft.name}</span><strong>{edition.priceEth} ETH</strong></Link>;
             })}
           </div>
         </section>

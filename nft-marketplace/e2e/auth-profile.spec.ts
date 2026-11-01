@@ -21,7 +21,7 @@ test('edits profile/avatar and changes password only for the current mock runtim
   await page.goto('/account/profile')
   await page.getByLabel('Name').fill('Ada E2E')
   await page.getByLabel('Bio').fill('Persisted by Playwright')
-  await page.getByLabel('Avatar URL').fill('http://127.0.0.1:4173/src/assets/nftTwo.svg')
+  await page.getByLabel('Avatar URL').fill('http://127.0.0.1:4173/src/assets/nftTwo.webp')
   await page.getByRole('button', { name: 'Save profile' }).click()
   await expect(page.getByText('Profile updated.')).toBeVisible()
   await page.reload()
