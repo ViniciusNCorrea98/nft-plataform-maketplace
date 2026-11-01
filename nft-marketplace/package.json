@@ -11,7 +11,9 @@
     "test:e2e": "playwright test",
     "test:e2e:update": "playwright test --update-snapshots",
     "test:e2e:report": "playwright show-report playwright-report",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "audit:mobile": "npm run build && lhci autorun --config=.lighthouserc.mobile.cjs",
+    "audit:desktop": "npm run build && lhci autorun --config=.lighthouserc.desktop.cjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

@@ -1,0 +1,74 @@
+[
+  {
+    "url": "http://127.0.0.1:4173/",
+    "isRepresentativeRun": false,
+    "htmlPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\mobile\\127_0_0_1--2026_11_01_13_35_13.report.html",
+    "jsonPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\mobile\\127_0_0_1--2026_11_01_13_35_13.report.json",
+    "summary": {
+      "performance": 0.85,
+      "accessibility": 0.98,
+      "best-practices": 1,
+      "seo": 0.83
+    }
+  },
+  {
+    "url": "http://127.0.0.1:4173/",
+    "isRepresentativeRun": false,
+    "htmlPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\mobile\\127_0_0_1--2026_11_01_13_35_29.report.html",
+    "jsonPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\mobile\\127_0_0_1--2026_11_01_13_35_29.report.json",
+    "summary": {
+      "performance": 0.85,
+      "accessibility": 0.98,
+      "best-practices": 1,
+      "seo": 0.83
+    }
+  },
+  {
+    "url": "http://127.0.0.1:4173/nft/nft-1",
+    "isRepresentativeRun": false,
+    "htmlPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\mobile\\127_0_0_1-nft_nft_1-2026_11_01_13_35_57.report.html",
+    "jsonPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\mobile\\127_0_0_1-nft_nft_1-2026_11_01_13_35_57.report.json",
+    "summary": {
+      "performance": 0.67,
+      "accessibility": 0.96,
+      "best-practices": 1,
+      "seo": 0.83
+    }
+  },
+  {
+    "url": "http://127.0.0.1:4173/nft/nft-1",
+    "isRepresentativeRun": false,
+    "htmlPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\mobile\\127_0_0_1-nft_nft_1-2026_11_01_13_36_10.report.html",
+    "jsonPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\mobile\\127_0_0_1-nft_nft_1-2026_11_01_13_36_10.report.json",
+    "summary": {
+      "performance": 0.67,
+      "accessibility": 0.96,
+      "best-practices": 1,
+      "seo": 0.83
+    }
+  },
+  {
+    "url": "http://127.0.0.1:4173/",
+    "isRepresentativeRun": true,
+    "htmlPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\mobile\\127_0_0_1--2026_11_01_13_35_43.report.html",
+    "jsonPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\mobile\\127_0_0_1--2026_11_01_13_35_43.report.json",
+    "summary": {
+      "performance": 0.85,
+      "accessibility": 0.98,
+      "best-practices": 1,
+      "seo": 0.83
+    }
+  },
+  {
+    "url": "http://127.0.0.1:4173/nft/nft-1",
+    "isRepresentativeRun": true,
+    "htmlPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\mobile\\127_0_0_1-nft_nft_1-2026_11_01_13_36_24.report.html",
+    "jsonPath": "C:\\Users\\Micro\\Documents\\Estudos\\ProcessoSeletivos\\nft-plataform-maketplace\\nft-marketplace\\lighthouse-reports\\mobile\\127_0_0_1-nft_nft_1-2026_11_01_13_36_24.report.json",
+    "summary": {
+      "performance": 0.67,
+      "accessibility": 0.96,
+      "best-practices": 1,
+      "seo": 0.83
+    }
+  }
+]
